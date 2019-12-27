@@ -30,7 +30,7 @@
 
 #include <argp.h>
 #include "global_def.h"
-
+#include <stdlib.h>
 
 // Contains results of parsing the command line
 struct program_info {
@@ -38,6 +38,8 @@ struct program_info {
     char *rule_name;          // The rule name, -r
     char *version;
     char *min_supported_version; // The oldedst supported ruleset
+    char *guesses_file;
+    long long guess_number;
 };
 
 

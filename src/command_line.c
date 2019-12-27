@@ -36,6 +36,8 @@ static struct argp_option options[] =
 {
     {"rule_name",  'r', "OUTFILE", 0, "The ruleset to use. Default is: 'Default'"},
     {"debug", 'd', 0, 0, "Prints out debugging info vs guesses."},
+    {"guess-number", 'n', "GUESSNUMBER", 0, "How many guesses will be generated"},
+    {"guesses-file", 'f', "GUESSESFILE", 0, "The candidate guesses will be put here"},
     {0}
 };
 
@@ -51,6 +53,12 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state){
             break;
         case 'r':
             program_info->rule_name = arg;
+            break;
+        case 'n':
+            program_info->guess_number = atoll(arg);
+            break;
+        case 'f':
+            program_info->guesses_file = arg;
             break;
         default:
             return ARGP_ERR_UNKNOWN;
@@ -81,6 +89,8 @@ int parse_command_line(int argc, char **argv, struct program_info *program_info)
     program_info->debug = 0;
     program_info->version = VERSION;
     program_info->min_supported_version = MIN_SUPPORTED_VERSION;
+    program_info->guess_number = 10;
+    program_info->guesses_file = "guesses.txt";
     
     argp_parse(&argp, argc, argv, 0, 0, program_info);
     

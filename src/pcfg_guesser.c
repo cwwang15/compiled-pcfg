@@ -24,8 +24,13 @@
 //
 
 #include "pcfg_guesser.h"
-
-
+long long guess_number;
+long long cur_gen_num;
+char *guesses_file;
+FILE *foutp;
+// these should be delete
+#include <sys/time.h>
+struct timeval start, end;
 void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_point) {
     
     int new_start = start_point;
@@ -66,7 +71,17 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
         
         // If this is the last item, generate a guess
         if (base_pos == (pq_item->size - 1)) {
-            printf("%s\n",cur_guess);
+        	cur_gen_num++;
+        	fputs(cur_guess, foutp);
+        	fputs("\n", foutp);
+        	if (cur_gen_num >= guess_number) {
+        		gettimeofday(&end, NULL);
+        		double timeuse = (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
+        		printf("timeuse: %fs\n", timeuse);
+        		printf("Done! The speed is %f\n", guess_number / timeuse);
+        		exit(0);
+        	}
+            // printf("guess: %s\n",cur_guess);
         }
         // Not the last item so doing this recursivly
         else {
@@ -103,9 +118,11 @@ int main(int argc, char *argv[]) {
     // Parse the command line
 	if (parse_command_line(argc, argv, &program_info) != 0) {
 		fprintf(stderr, "Error, parsing command line. Exiting\n");
-        return 0;
+        return 1;
 	}
-    
+    guess_number = program_info.guess_number;
+    cur_gen_num = 0;
+    guesses_file = program_info.guesses_file;
     // Print the startup banner
     print_banner(program_info.version);
     
@@ -116,16 +133,20 @@ int main(int argc, char *argv[]) {
     // Intiazlie the grammar and Priority Queue
     if (load_grammar(argv[0], program_info, &pcfg) != 0) {
         fprintf(stderr, "Error loading ruleset. Exiting\n");
-        return 0;
+        return 1;
 	}
-
+	foutp = fopen(guesses_file, "w");
+	if (NULL == foutp) {
+		fprintf(stderr, "error open file %s\n", guesses_file);
+		return 1;
+	}
     fprintf(stderr, "Initailizing the Priority Queue\n");
     priority_queue_t* pq;
 
     initialize_pcfg_pqueue(&pq, &pcfg);
     
     fprintf(stderr, "Starting to generate guesses\n");
-
+	gettimeofday(&start, NULL);
     // Start generating guesses
     while (!priority_queue_empty(pq)) {
         PQItem* pq_item = pcfg_pq_pop(pq);

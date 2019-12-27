@@ -58,7 +58,7 @@ int check_encoding(char *config_filename) {
     
     fprintf(stderr, "Unfortunatly, only UTF-8 or ASCII rulesets are currently supported by the compiled pcfg_guesser\n");
     fprintf(stderr, "Note: The Python pcfg_guesser supports other encoding schemes\n");
-    fprintf(stderr, "Detected Encodign: %s\n", result);
+    fprintf(stderr, "Detected Encoding: %s\n", result);
     return 3;
 }
 

@@ -299,7 +299,7 @@ int load_grammar(char *arg_exec, struct program_info program_info, PcfgGrammar *
     
     // Create the base directory to load the rules from
     char base_directory[FILENAME_MAX];
-    snprintf(base_directory, FILENAME_MAX, "%sRules%c%s%c", exec_directory,  SLASH, program_info.rule_name, SLASH);
+    snprintf(base_directory, FILENAME_MAX, "%s%c", program_info.rule_name, SLASH);
     
     fprintf(stderr, "Loading Ruleset:%s\n",base_directory);
     
