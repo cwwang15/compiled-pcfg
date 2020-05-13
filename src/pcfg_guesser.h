@@ -34,6 +34,7 @@
 #include "grammar.h"
 #include "pqueue.h"
 #include "pcfg_pqueue.h"
+#include "pwdstructmap.h"
 
 #endif
 
