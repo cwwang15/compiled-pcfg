@@ -65,7 +65,7 @@ origin_structs_t *find_converter(map_t pwd_struct_map, char *reduced_struct) {
     origin_structs_t *originStructs = malloc(sizeof(origin_structs_t));
     if (MAP_MISSING == error) {
         originStructs->len = 0;
-//        originStructs->variants = malloc(0);
+        originStructs->variants = malloc(4);
         return originStructs;
     }
     int counter = 0;

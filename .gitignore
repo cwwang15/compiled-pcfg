@@ -20,3 +20,4 @@ pcfg_guesser
 # pcfg toolset
 Rules/*
 Rules/
+*.log
