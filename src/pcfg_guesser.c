@@ -99,6 +99,7 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
                 }
             }
 //            fprintf(stderr, "end\n");
+            free(cur_guess_struct);
             free(originStructs->variants);
             free(originStructs);
             if (cur_gen_num >= guess_number) {
