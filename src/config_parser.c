@@ -186,7 +186,7 @@ int get_key(char *filename, char *section, char *key, char *result) {
                 if (result[result_len-1] == '\n' || result[result_len-1] == '\r') {
                     result[result_len-1] = '\0';
                 }
-                if (result_len > 1 && (result[result_len-2] == '\n' || result[result_len-1] == '\r')) {
+                if (result_len > 1 && (result[result_len-2] == '\n' || result[result_len-2] == '\r')) {
                     result[result_len-2] = '\0';
                 }
                 fclose(config);
