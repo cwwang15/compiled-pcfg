@@ -74,34 +74,42 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
         // If this is the last item, generate a guess
         if (base_pos == (pq_item->size - 1)) {
             cur_gen_num++;
+//            fprintf(stderr, "%llu: ", cur_gen_num);
             fputs(cur_guess, foutp);
             fputs("\n", foutp);
             char *cur_guess_struct = pwd_struct_extractor(cur_guess);
-            origin_structs_t *originStructs = find_converter(pwdStructMap, cur_guess_struct);
-//            fprintf(stderr, "num: %5lld, variants:  %2d, %s; ", cur_gen_num, originStructs->len, cur_guess);
-            if (originStructs->len > 0) {
-                for (int idx = 0; idx < originStructs->len; idx++) {
-//                    fprintf(stderr, "\nrestore: %s", originStructs->variants[idx]);
-                    char *variant_guess = pwd_struct_converter(cur_guess, originStructs->variants[idx]);
-                    fputs(variant_guess, foutp);
-                    fputs("\n", foutp);
-                    free(variant_guess);
-                    cur_gen_num++;
-                    free(originStructs->variants[idx]);
-                    if (cur_gen_num >= guess_number) {
-                        gettimeofday(&end, NULL);
-                        double timeuse =
-                                (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
-                        printf("timeuse: %fs\n", timeuse);
-                        printf("Done! The speed is %f\n", guess_number / timeuse);
-                        exit(0);
-                    }
+//            fprintf(stderr, "0, ");
+            int **variants = malloc(sizeof(int *) * 100);
+//            fprintf(stderr, "1, ");
+            int variants_count = find_converter(pwdStructMap, cur_guess_struct, variants);
+//            fprintf(stderr, "2, ");
+            int pwd_len = strnlen(cur_guess, MAX_LINE);
+            for (int v = 0; v < variants_count; v++) {
+//                fprintf(stderr, "3, ");
+                char variant[pwd_len + 1];
+                variant[pwd_len] = '\0';
+                int *pos_map = variants[v];
+                for (int p = 0; p < pwd_len; p++) {
+                    variant[pos_map[p]] = cur_guess[p];
+                }
+                fputs(variant, foutp);
+                fputs("\n", foutp);
+                cur_gen_num++;
+                if (cur_gen_num >= guess_number) {
+                    gettimeofday(&end, NULL);
+                    double timeuse =
+                            (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
+                    printf("timeuse: %fs\n", timeuse);
+                    printf("Done! The speed is %f\n", guess_number / timeuse);
+                    exit(0);
                 }
             }
-//            fprintf(stderr, "end\n");
+//            fprintf(stderr, "4, ");
+
+            free(variants);
             free(cur_guess_struct);
-            free(originStructs->variants);
-            free(originStructs);
+            variants = NULL;
+            cur_guess_struct = NULL;
             if (cur_gen_num >= guess_number) {
                 gettimeofday(&end, NULL);
                 double timeuse = (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
@@ -109,6 +117,7 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
                 printf("Done! The speed is %f\n", guess_number / timeuse);
                 exit(0);
             }
+//            fprintf(stderr, "ok\n");
             // printf("guess: %s\n",cur_guess);
         }
             // Not the last item so doing this recursivly
@@ -158,7 +167,8 @@ int main(int argc, char *argv[]) {
              "%s%s", program_info.rule_name, "/Grammar/pwdstructmap.txt");
     printf("grammar path: %s\npwd struct map path: %s\n", grammar_path, mapper_path);
     pwdStructMap = read_pwd_struct_map(mapper_path);
-
+    free(grammar_path);
+    free(mapper_path);
     // Print the startup banner
     print_banner(program_info.version);
 
