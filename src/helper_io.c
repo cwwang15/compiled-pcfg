@@ -50,8 +50,6 @@ int check_encoding(char *config_filename) {
         default:
             return ret_value;
     }
-    fprintf(stderr, "Encodin: %s%s\n", result, ";");
-    fprintf(stderr, "cmp: %d\n", strncmp("ASCII", "ascii", 5));
     // It is utf-8 or ASCII encoding so it is supported
     if ((strncmp(result, "utf-8", 5) == 0) || (strncmp(result, "ascii", 5) == 0)) {
         return 0;

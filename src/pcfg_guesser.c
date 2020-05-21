@@ -75,7 +75,7 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
             cur_gen_num++;
             fputs(cur_guess, foutp);
             fputs("\n", foutp);
-            fprintf(stderr, "%s\t%f\n", cur_guess, pq_item->prob);
+//            fprintf(stderr, "%s\t%f\n", cur_guess, pq_item->prob);
             if (cur_gen_num >= guess_number) {
                 gettimeofday(&end, NULL);
                 double timeuse = (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
