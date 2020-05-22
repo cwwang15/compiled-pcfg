@@ -30,6 +30,7 @@ long long cur_gen_num;
 char *guesses_file;
 FILE *foutp;
 map_t pwdStructMap;
+map_t pwdVariantMap;
 // these should be delete
 #include <sys/time.h>
 
@@ -162,13 +163,22 @@ int main(int argc, char *argv[]) {
     char *grammar_path = malloc(PATH_MAX);
     snprintf(grammar_path, PATH_MAX,
              "%s%s", program_info.rule_name, "/Grammar/grammar.txt");
-    char *mapper_path = malloc(PATH_MAX);
-    snprintf(mapper_path, PATH_MAX,
-             "%s%s", program_info.rule_name, "/Grammar/pwdstructmap.txt");
-    printf("grammar path: %s\npwd struct map path: %s\n", grammar_path, mapper_path);
-    pwdStructMap = read_pwd_struct_map(mapper_path);
+    char *struct_map_path = malloc(PATH_MAX);
+    snprintf(struct_map_path, PATH_MAX, "%s%s", program_info.rule_name, "/Grammar/structmap.txt");
+    char *pwd_map_path = malloc(PATH_MAX);
+    snprintf(pwd_map_path, PATH_MAX, "%s%s", program_info.rule_name, "/Grammar/pwdmap.txt");
+    printf("grammar path: %s\nstruct map path: %s\n", grammar_path, struct_map_path);
+    pwdStructMap = read_struct_map(struct_map_path);
+    pwdVariantMap = read_pwd_map(pwd_map_path);
+    pwd_variant_t *pwdVariant;
+    int myerro = hashmap_get(pwdVariantMap, "321321..", (void **) (&pwdVariant));
+    printf("hello, errno: %d\n", myerro);
+    if (myerro != MAP_MISSING) {
+        printf("%s\n", pwdVariant->pwd_variant);
+    }
     free(grammar_path);
-    free(mapper_path);
+    free(struct_map_path);
+    free(pwd_map_path);
     // Print the startup banner
     print_banner(program_info.version);
 

@@ -18,8 +18,14 @@ typedef struct pwd_struct_s {
     struct pwd_struct_s *next;
 } pwd_struct_t;
 
-map_t read_pwd_struct_map(char *filename);
+typedef struct pwd_variant_s {
+    char *pwd_variant;
+    struct pwd_variant_s *next;
+} pwd_variant_t;
 
+map_t read_struct_map(char *filename);
+
+map_t read_pwd_map(char *filename);
 
 int find_converter(map_t pwd_struct_map, char *reduced_struct, int **variants);
 

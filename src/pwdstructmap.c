@@ -5,8 +5,8 @@
 #include "pwdstructmap.h"
 #include "hashmap.h"
 
-map_t read_pwd_struct_map(char *filename) {
-    map_t pwd_struct_map = hashmap_new();
+map_t read_struct_map(char *filename) {
+    map_t struct_map = hashmap_new();
     FILE *fp_in = fopen(filename, "r");
     if (fp_in == NULL) {
         perror("failed to open file");
@@ -34,23 +34,65 @@ map_t read_pwd_struct_map(char *filename) {
         pwd_struct_t *pwdStruct;
         char *key = malloc(MAX_LINE);
         snprintf(key, MAX_LINE, "%s", pair[1]);
-        error = hashmap_get(pwd_struct_map, key, (void **) (&pwdStruct));
+        error = hashmap_get(struct_map, key, (void **) (&pwdStruct));
         int len = strnlen(pair[0], MAX_LINE);
         if (error == MAP_MISSING) {
             pwd_struct_t *pwdStruct1 = malloc(sizeof(pwd_struct_t));
             pwdStruct1->pwd_struct = malloc(sizeof(int) * len);
             pwd_struct_converter(key, pair[0], pwdStruct1->pwd_struct, len);
             pwdStruct1->next = pwdStruct;
-            hashmap_put(pwd_struct_map, key, pwdStruct1);
+            hashmap_put(struct_map, key, pwdStruct1);
         } else {
             pwd_struct_t *pwdStruct1 = malloc(sizeof(pwd_struct_t));
             pwdStruct1->pwd_struct = malloc(sizeof(int) * len);
             pwd_struct_converter(key, pair[0], pwdStruct1->pwd_struct, len);
             pwdStruct1->next = pwdStruct;
-            hashmap_put(pwd_struct_map, key, pwdStruct1);
+            hashmap_put(struct_map, key, pwdStruct1);
         }
     }
-    return pwd_struct_map;
+    return struct_map;
+}
+
+map_t read_pwd_map(char *filename) {
+    map_t pwd_map = hashmap_new();
+    FILE *fp_in = fopen(filename, "r");
+    if (fp_in == NULL) {
+        fprintf(stderr, "failed to open file: %s", filename);
+        exit(-1);
+    }
+    char buf[MAX_LINE];
+    while (fgets(buf, MAX_LINE, fp_in) != NULL) {
+        char *token;
+        int i;
+        char delim[] = "\t";
+        char *pair[2];
+        for (token = strtok(buf, delim), i = 0; token != NULL; token = strtok(NULL, delim), i += 1) {
+            if (i >= 2) {
+                perror("Unexpected index: ");
+                exit(-1);
+            }
+            pair[i] = token;
+        }
+        pwd_variant_t *pwdVariant;
+        char *key = malloc(MAX_LINE);
+        snprintf(key, MAX_LINE, "%s", pair[0]);
+        int len = strnlen(key, MAX_LINE);
+        int error = hashmap_get(pwd_map, key, (void **) (&pwdVariant));
+        if (error == MAP_MISSING) {
+            pwd_variant_t *pwdVariant1 = malloc(sizeof(pwd_variant_t));
+            pwdVariant1->pwd_variant = malloc(sizeof(char) * (len + 1));
+            snprintf(pwdVariant1->pwd_variant, MAX_LINE, "%s", pair[1]);
+            pwdVariant1->next = pwdVariant;
+            hashmap_put(pwd_map, key, pwdVariant1);
+        } else {
+            pwd_variant_t *pwdVariant1 = malloc(sizeof(pwd_struct_t));
+            pwdVariant1->pwd_variant = malloc(sizeof(char) * (len + 1));
+            snprintf(pwdVariant1->pwd_variant, MAX_LINE, "%s", pair[1]);
+            pwdVariant1->next = pwdVariant;
+            hashmap_put(pwd_map, key, pwdVariant1);
+        }
+    }
+    return pwd_map;
 }
 
 int find_converter(map_t pwd_struct_map, char *reduced_struct, int **variants) {
