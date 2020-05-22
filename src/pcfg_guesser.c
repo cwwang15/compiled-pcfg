@@ -36,6 +36,17 @@ map_t pwdVariantMap;
 
 struct timeval start, end;
 
+int watcher_complete() {
+    if (cur_gen_num >= guess_number) {
+        gettimeofday(&end, NULL);
+        double timeuse = (double) (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
+        printf("timeuse: %fs\n", timeuse);
+        printf("Done! The speed is %f\n", ((double) guess_number) / timeuse);
+        exit(0);
+    }
+    return 0;
+}
+
 void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_point) {
 
     int new_start = start_point;
@@ -78,46 +89,45 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
 //            fprintf(stderr, "%llu: ", cur_gen_num);
             fputs(cur_guess, foutp);
             fputs("\n", foutp);
-            char *cur_guess_struct = pwd_struct_extractor(cur_guess);
+            pwd_variant_t *pwdVariant;
+            int v_error = hashmap_get(pwdVariantMap, cur_guess, (void **) (&pwdVariant));
+            if (v_error != MAP_MISSING) {
+                for (pwd_variant_t *ps = pwdVariant; ps != NULL; ps = ps->next) {
+                    fputs(ps->pwd_variant, foutp);
+                    fputs("\n", foutp);
+                    cur_gen_num++;
+                    watcher_complete();
+                }
+            } else {
+                char *cur_guess_struct = pwd_struct_extractor(cur_guess);
 //            fprintf(stderr, "0, ");
-            int **variants = malloc(sizeof(int *) * 100);
+                int **struct_variants = malloc(sizeof(int *) * 20);
 //            fprintf(stderr, "1, ");
-            int variants_count = find_converter(pwdStructMap, cur_guess_struct, variants);
+                int struct_variants_count = find_converter(pwdStructMap, cur_guess_struct, struct_variants);
 //            fprintf(stderr, "2, ");
-            int pwd_len = strnlen(cur_guess, MAX_LINE);
-            for (int v = 0; v < variants_count; v++) {
+                int pwd_len = strnlen(cur_guess, MAX_LINE);
+                for (int v = 0; v < struct_variants_count; v++) {
 //                fprintf(stderr, "3, ");
-                char variant[pwd_len + 1];
-                variant[pwd_len] = '\0';
-                int *pos_map = variants[v];
-                for (int p = 0; p < pwd_len; p++) {
-                    variant[pos_map[p]] = cur_guess[p];
+                    char variant[pwd_len + 1];
+                    variant[pwd_len] = '\0';
+                    int *pos_map = struct_variants[v];
+                    for (int p = 0; p < pwd_len; p++) {
+                        variant[pos_map[p]] = cur_guess[p];
+                    }
+                    fputs(variant, foutp);
+                    fputs("\n", foutp);
+                    cur_gen_num++;
+                    watcher_complete();
                 }
-                fputs(variant, foutp);
-                fputs("\n", foutp);
-                cur_gen_num++;
-                if (cur_gen_num >= guess_number) {
-                    gettimeofday(&end, NULL);
-                    double timeuse =
-                            (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
-                    printf("timeuse: %fs\n", timeuse);
-                    printf("Done! The speed is %f\n", guess_number / timeuse);
-                    exit(0);
-                }
-            }
 //            fprintf(stderr, "4, ");
 
-            free(variants);
-            free(cur_guess_struct);
-            variants = NULL;
-            cur_guess_struct = NULL;
-            if (cur_gen_num >= guess_number) {
-                gettimeofday(&end, NULL);
-                double timeuse = (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
-                printf("timeuse: %fs\n", timeuse);
-                printf("Done! The speed is %f\n", guess_number / timeuse);
-                exit(0);
+                free(struct_variants);
+                free(cur_guess_struct);
+                struct_variants = NULL;
+                cur_guess_struct = NULL;
             }
+
+            watcher_complete();
 //            fprintf(stderr, "ok\n");
             // printf("guess: %s\n",cur_guess);
         }
@@ -170,12 +180,6 @@ int main(int argc, char *argv[]) {
     printf("grammar path: %s\nstruct map path: %s\n", grammar_path, struct_map_path);
     pwdStructMap = read_struct_map(struct_map_path);
     pwdVariantMap = read_pwd_map(pwd_map_path);
-    pwd_variant_t *pwdVariant;
-    int myerro = hashmap_get(pwdVariantMap, "321321..", (void **) (&pwdVariant));
-    printf("hello, errno: %d\n", myerro);
-    if (myerro != MAP_MISSING) {
-        printf("%s\n", pwdVariant->pwd_variant);
-    }
     free(grammar_path);
     free(struct_map_path);
     free(pwd_map_path);
