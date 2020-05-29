@@ -132,7 +132,7 @@ Target = pcfg_guesser cleano
 all: $(Target)
 
 pcfg_guesser: src/pcfg_guesser.o src/tty.o src/banner_info.o src/command_line.o src/grammar_io.o src/config_parser.o src/helper_io.o src/base_structure_io.o src/pqueue.o src/pcfg_pqueue.o src/pwdstructmap.o src/hashmap.o
-	$(CC) $(CFLAGS_NATIVE) src/pcfg_guesser.o src/tty.o src/banner_info.o src/command_line.o src/config_parser.o src/grammar_io.o src/helper_io.o src/base_structure_io.o src/pqueue.o src/pcfg_pqueue.o src/pwdstructmap.o src/hashmap.o -O3 -o pcfg_guesser.reduce -no-pie
+	$(CC) $(CFLAGS_NATIVE) src/pcfg_guesser.o src/tty.o src/banner_info.o src/command_line.o src/config_parser.o src/grammar_io.o src/helper_io.o src/base_structure_io.o src/pqueue.o src/pcfg_pqueue.o src/pwdstructmap.o src/hashmap.o -O3 -o pcfg_guesser.reduce-origin -no-pie
 	
 pcfg_guesser.o: src/pcfg_guesser.c src/pcfg_guesser.h src/grammar.h
 	$(CC) $(CFLAGS_NATIVE) -c src/pcfg_guesser.c
