@@ -35,4 +35,6 @@ unsigned long find_char(char source[], char chr);
 
 int pwd_struct_converter(const char *pwd, const char *target_struct, int *pos_map, int len);
 
+int count_line(const char *filename);
+
 #endif //C_HASHMAP_MASTER_PWDSTRUCTMAP_H

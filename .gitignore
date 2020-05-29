@@ -14,7 +14,7 @@ venv.bak/
 *.a
 
 #Built executables
-pcfg_guesser
+pcfg_guesser*
 
 # Ignore rulesets since I currently only plan on releasing them under the python
 # pcfg toolset

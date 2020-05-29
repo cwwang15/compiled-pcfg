@@ -50,6 +50,7 @@ map_t read_struct_map(char *filename) {
             hashmap_put(struct_map, key, pwdStruct1);
         }
     }
+    fclose(fp_in);
     return struct_map;
 }
 
@@ -75,23 +76,24 @@ map_t read_pwd_map(char *filename) {
         }
         pwd_variant_t *pwdVariant;
         char *key = malloc(MAX_LINE);
-        snprintf(key, MAX_LINE, "%s", pair[0]);
+        snprintf(key, MAX_LINE, "%s", pair[1]);
         int len = strnlen(key, MAX_LINE);
         int error = hashmap_get(pwd_map, key, (void **) (&pwdVariant));
         if (error == MAP_MISSING) {
             pwd_variant_t *pwdVariant1 = malloc(sizeof(pwd_variant_t));
             pwdVariant1->pwd_variant = malloc(sizeof(char) * (len + 1));
-            snprintf(pwdVariant1->pwd_variant, MAX_LINE, "%s", pair[1]);
+            snprintf(pwdVariant1->pwd_variant, MAX_LINE, "%s", pair[0]);
             pwdVariant1->next = pwdVariant;
             hashmap_put(pwd_map, key, pwdVariant1);
         } else {
             pwd_variant_t *pwdVariant1 = malloc(sizeof(pwd_struct_t));
             pwdVariant1->pwd_variant = malloc(sizeof(char) * (len + 1));
-            snprintf(pwdVariant1->pwd_variant, MAX_LINE, "%s", pair[1]);
+            snprintf(pwdVariant1->pwd_variant, MAX_LINE, "%s", pair[0]);
             pwdVariant1->next = pwdVariant;
             hashmap_put(pwd_map, key, pwdVariant1);
         }
     }
+    fclose(fp_in);
     return pwd_map;
 }
 
@@ -157,4 +159,19 @@ int pwd_struct_converter(const char *source_struct, const char *target_struct, i
         pos_map[i] = t_i;
     }
     return 0;
+}
+
+int count_line(const char *filename) {
+    FILE *fin = fopen(filename, "r");
+    if (NULL == fin) {
+        fprintf(stderr, "Failed to open %s", filename);
+        exit(-1);
+    }
+    char buf[MAX_LINE];
+    int line_count = 0;
+    while (fgets(buf, MAX_LINE, fin) != NULL) {
+        line_count++;
+    }
+    fclose(fin);
+    return line_count;
 }

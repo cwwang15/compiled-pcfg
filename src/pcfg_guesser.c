@@ -27,8 +27,10 @@
 
 long long guess_number;
 long long cur_gen_num;
+int do_post_action = 0;
 char *guesses_file;
 FILE *foutp;
+FILE *extra;
 map_t pwdStructMap;
 map_t pwdVariantMap;
 // these should be delete
@@ -36,8 +38,21 @@ map_t pwdVariantMap;
 
 struct timeval start, end;
 
+int post_action() {
+    if (do_post_action) {
+        char buf[MAX_LINE];
+        while (fgets(buf, MAX_LINE, extra) != NULL) {
+            fputs(buf, foutp);
+        }
+        fclose(extra);
+    }
+
+    return 0;
+}
+
 int watcher_complete() {
     if (cur_gen_num >= guess_number) {
+        post_action();
         gettimeofday(&end, NULL);
         double timeuse = (double) (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
         printf("timeuse: %fs\n", timeuse);
@@ -177,9 +192,17 @@ int main(int argc, char *argv[]) {
     snprintf(struct_map_path, PATH_MAX, "%s%s", program_info.rule_name, "/Grammar/structmap.txt");
     char *pwd_map_path = malloc(PATH_MAX);
     snprintf(pwd_map_path, PATH_MAX, "%s%s", program_info.rule_name, "/Grammar/pwdmap.txt");
+    char *not_cracked_file = malloc(PATH_MAX);
+    snprintf(not_cracked_file, PATH_MAX, "%s%s", program_info.rule_name, "/Grammar/not_cracked.txt");
     printf("grammar path: %s\nstruct map path: %s\n", grammar_path, struct_map_path);
     pwdStructMap = read_struct_map(struct_map_path);
     pwdVariantMap = read_pwd_map(pwd_map_path);
+    int extra_pwd_num = count_line(not_cracked_file);
+    if (guess_number > extra_pwd_num * 8) {
+        do_post_action = 1;
+        extra = fopen(not_cracked_file, "r");
+        guess_number -= extra_pwd_num;
+    }
     free(grammar_path);
     free(struct_map_path);
     free(pwd_map_path);
