@@ -18,7 +18,12 @@ map_t read_struct_map(char *filename) {
     while (fgets(buf, MAX_LINE, fp_in) != NULL) {
         counter += 1;
         line_len = strlen(buf);
-        buf[line_len - 1] = '\0';
+        if (line_len > 0 && buf[line_len - 1] == '\n') {
+            buf[line_len - 1] = '\0';
+        }
+        if (line_len > 1 && buf[line_len - 2] == '\r') {
+            buf[line_len - 2] = '\0';
+        }
         char *token;
         int i;
         char delim[] = "\t";
@@ -63,6 +68,14 @@ map_t read_pwd_map(char *filename) {
     }
     char buf[MAX_LINE];
     while (fgets(buf, MAX_LINE, fp_in) != NULL) {
+
+        unsigned long line_len = strlen(buf);
+        if (line_len > 0 && buf[line_len - 1] == '\n') {
+            buf[line_len - 1] = '\0';
+        }
+        if (line_len > 1 && buf[line_len - 2] == '\r') {
+            buf[line_len - 2] = '\0';
+        }
         char *token;
         int i;
         char delim[] = "\t";
@@ -77,7 +90,7 @@ map_t read_pwd_map(char *filename) {
         pwd_variant_t *pwdVariant;
         char *key = malloc(MAX_LINE);
         snprintf(key, MAX_LINE, "%s", pair[1]);
-        int len = strnlen(key, MAX_LINE);
+        int len = strnlen(pair[0], MAX_LINE);
         int error = hashmap_get(pwd_map, key, (void **) (&pwdVariant));
         if (error == MAP_MISSING) {
             pwd_variant_t *pwdVariant1 = malloc(sizeof(pwd_variant_t));

@@ -175,6 +175,6 @@ cleano:
 	rm -f src/*.a
 
 clean:
-	rm -f pcfg_guesser 
+	rm -f pcfg_guesser.reduce-origin
 	rm -f src/*.o
 	rm -f src/*.a
