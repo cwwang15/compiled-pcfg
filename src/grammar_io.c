@@ -335,10 +335,10 @@ int load_grammar(char *arg_exec, struct program_info program_info, PcfgGrammar *
     }
 
     // Read in the years terminals 
-    /*if (load_terminal(config_filename, base_directory, "BASE_Y", "Y", pcfg->years) != 0) {
+    if (load_terminal(config_filename, base_directory, "BASE_Y", "Y", pcfg->years) != 0) {
         fprintf(stderr, "Error reading the Y rules file. Exiting\n");
         return 1;
-    }*/
+    }
     // Read in the "other" terminals 
     if (load_terminal(config_filename, base_directory, "BASE_O", "O", pcfg->other) != 0) {
         fprintf(stderr, "Error reading the O rules file. Exiting\n");
