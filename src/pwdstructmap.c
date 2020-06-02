@@ -110,6 +110,39 @@ map_t read_pwd_map(char *filename) {
     return pwd_map;
 }
 
+map_t read_not_cracked(char *filename) {
+    map_t not_cracked_map = hashmap_new();
+    FILE *fin = fopen(filename, "r");
+    if (NULL == fin) {
+        fprintf(stderr, "failed to open file: %s", filename);
+        exit(-1);
+    }
+    char buf[MAX_LINE];
+    while (fgets(buf, MAX_LINE, fin) != NULL) {
+        unsigned long line_len = strlen(buf);
+        if (line_len > 0 && buf[line_len - 1] == '\n') {
+            buf[line_len - 1] = '\0';
+        }
+        if (line_len > 1 && buf[line_len - 2] == '\r') {
+            buf[line_len - 2] = '\0';
+        }
+        char *pwd_struct = pwd_struct_extractor(buf);
+        not_cracked_t *notCracked;
+        int len = strnlen(buf, MAX_LINE);
+        int error = hashmap_get(not_cracked_map, pwd_struct, (void **) (&notCracked));
+        not_cracked_t *nc = malloc(sizeof(not_cracked_t));
+        nc->not_cracked = malloc(sizeof(char) * (len + 1));
+        snprintf(nc->not_cracked, MAX_LINE, "%s", buf);
+        if (MAP_MISSING == error) {
+            nc->next = NULL;
+        } else {
+            nc->next = notCracked;
+        }
+        hashmap_put(not_cracked_map, pwd_struct, nc);
+    }
+    return not_cracked_map;
+}
+
 int find_converter(map_t pwd_struct_map, char *reduced_struct, int **variants) {
     pwd_struct_t *pwdStruct2;
     int error = hashmap_get(pwd_struct_map, reduced_struct, (void **) (&pwdStruct2));

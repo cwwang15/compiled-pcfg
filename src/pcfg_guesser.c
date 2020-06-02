@@ -29,7 +29,7 @@ long long guess_number;
 long long cur_gen_num;
 char *guesses_file;
 FILE *foutp;
-FILE *extra;
+map_t not_cracked_map;
 // these should be delete
 #include <sys/time.h>
 
@@ -88,6 +88,19 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
             fputs(cur_guess, foutp);
             fputs("\n", foutp);
             watcher_complete();
+            char *pwd_struct = pwd_struct_extractor(cur_guess);
+            not_cracked_t *notCracked;
+            int map_return = hashmap_get(not_cracked_map, pwd_struct, (void **) (&notCracked));
+            if (MAP_MISSING != map_return) {
+                for (not_cracked_t *nc = notCracked; nc != NULL; nc = nc->next) {
+                    fputs(nc->not_cracked, foutp);
+                    fputs("\n", foutp);
+                    cur_gen_num++;
+                    watcher_complete();
+                }
+                hashmap_remove(not_cracked_map, pwd_struct);
+            }
+            free(pwd_struct);
         }
             // Not the last item so doing this recursivly
         else {
@@ -133,12 +146,9 @@ int main(int argc, char *argv[]) {
              "%s%s", program_info.rule_name, "/Grammar/grammar.txt");
     char *not_cracked_file = malloc(PATH_MAX);
     snprintf(not_cracked_file, PATH_MAX, "%s%s", program_info.rule_name, "/Grammar/not_cracked.txt");
-    int extra_pwd_num = count_line(not_cracked_file);
-    if (guess_number > extra_pwd_num * 8) {
-        extra = fopen(not_cracked_file, "r");
-        guess_number -= extra_pwd_num;
-    }
+    not_cracked_map = read_not_cracked(not_cracked_file);
     free(grammar_path);
+    free(not_cracked_file);
     // Print the startup banner
     print_banner(program_info.version);
 

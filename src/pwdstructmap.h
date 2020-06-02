@@ -23,10 +23,15 @@ typedef struct pwd_variant_s {
     struct pwd_variant_s *next;
 } pwd_variant_t;
 
+typedef struct not_cracked_s {
+    char *not_cracked;
+    struct not_cracked_s *next;
+} not_cracked_t;
+
 map_t read_struct_map(char *filename);
 
 map_t read_pwd_map(char *filename);
-
+map_t read_not_cracked(char *filename);
 int find_converter(map_t pwd_struct_map, char *reduced_struct, int **variants);
 
 char *pwd_struct_extractor(const char *pwd);
