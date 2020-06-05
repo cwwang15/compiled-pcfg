@@ -73,8 +73,7 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
         // If this is the last item, generate a guess
         if (base_pos == (pq_item->size - 1)) {
             cur_gen_num++;
-            fputs(cur_guess, foutp);
-            fputs("\n", foutp);
+            fprintf(foutp, "%s\t%.10f\n", cur_guess, -log2(pq_item->prob));
 //            fprintf(stderr, "%s\t%f\n", cur_guess, pq_item->prob);
             if (cur_gen_num >= guess_number) {
                 gettimeofday(&end, NULL);
