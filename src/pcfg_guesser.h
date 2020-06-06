@@ -28,6 +28,7 @@
 #define _PCFG_GUESSER_H
 
 #include <stdio.h>
+#include <math.h>
 #include "command_line.h"
 #include "banner_info.h"
 #include "grammar_io.h"

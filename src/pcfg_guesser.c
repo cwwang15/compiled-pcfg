@@ -73,14 +73,14 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
         // If this is the last item, generate a guess
         if (base_pos == (pq_item->size - 1)) {
             cur_gen_num++;
-            fputs(cur_guess, foutp);
-            fputs("\n", foutp);
+            fprintf(foutp, "%s\t%.8f\n", cur_guess, -log2(pq_item->prob));
 //            fprintf(stderr, "%s\t%f\n", cur_guess, pq_item->prob);
             if (cur_gen_num >= guess_number) {
                 gettimeofday(&end, NULL);
-                double timeuse = (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
+                double timeuse =
+                        (double) (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
                 printf("timeuse: %fs\n", timeuse);
-                printf("Done! The speed is %f\n", guess_number / timeuse);
+                printf("Done! The speed is %f\n", (double) guess_number / timeuse);
                 exit(0);
             }
             // printf("guess: %s\n",cur_guess);
