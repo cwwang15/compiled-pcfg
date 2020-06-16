@@ -31,6 +31,7 @@ char *guesses_file;
 FILE *foutp;
 map_t pwdVariantMap;
 map_t blackListMap;
+map_t terminalsMap;
 // these should be delete
 #include <sys/time.h>
 
@@ -96,6 +97,7 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
 //            fprintf(stderr, "%llu: ", cur_gen_num);
             fputs(cur_guess, foutp);
             fputc('\n', foutp);
+            cur_gen_num += sparsity(cur_guess, foutp, terminalsMap);
             pwd_variant_t *pwdVariant;
             int v_error = hashmap_get(pwdVariantMap, cur_guess, (void **) (&pwdVariant));
             if (v_error != MAP_MISSING) {
@@ -152,7 +154,9 @@ int main(int argc, char *argv[]) {
     snprintf(pwd_map_path, PATH_MAX, "%s%s", program_info.rule_name, "/Grammar/pwdmap.txt");
     pwdVariantMap = hashmap_new();
     blackListMap = hashmap_new();
+    terminalsMap = hashmap_new();
     read_pwd_map(pwd_map_path, pwdVariantMap, blackListMap);
+    load_terminals2map(program_info, terminalsMap);
     free(pwd_map_path);
     // Print the startup banner
     print_banner(program_info.version);

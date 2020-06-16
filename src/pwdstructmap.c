@@ -122,7 +122,6 @@ int find_converter(map_t pwd_struct_map, char *reduced_struct, int **variants) {
     return counter;
 }
 
-
 char *pwd_struct_extractor(const char *pwd) {
     unsigned long len = strlen(pwd);
     char *pwd_struct = malloc(sizeof(char) * (len + 1));
@@ -181,4 +180,101 @@ int count_line(const char *filename) {
     }
     fclose(fin);
     return line_count;
+}
+
+int sparsity(const char *pwd, FILE *fp, map_t terminals_map) {
+    unsigned long len = strnlen(pwd, MAX_LINE);
+    char pwd_struct[len + 1];
+    pwd_struct[len] = '\0';
+    int n_seg = 0;
+    int base_i = 0;
+    char prev_char = '\t';
+    char parts[3][len + 1];
+    int count[3] = {0, 0, 0};
+    for (unsigned long i = 0; i < len; i++) {
+        char cls;
+        if ('a' <= pwd[i] && pwd[i] <= 'z' || 'A' <= pwd[i] && pwd[i] <= 'Z') {
+            count[0] = 1;
+            cls = 'L';
+        } else if ('0' <= pwd[i] && pwd[i] <= '9') {
+            count[1] = 1;
+            cls = 'D';
+        } else {
+            count[2] = 1;
+            cls = 'S';
+        }
+        if (cls != prev_char) {
+            prev_char = cls;
+            if (n_seg != 0) {
+                parts[n_seg - 1][i - base_i] = '\0';
+            }
+            n_seg += 1;
+            base_i = (int) i;
+        }
+        if (n_seg > 3) {
+            return 0;
+        }
+        parts[n_seg - 1][i - base_i] = pwd[i];
+
+    }
+    int total = count[0] + count[1] + count[2];
+    if (total != 2 || n_seg != 3) {
+        return 0;
+    }
+    char *combine = malloc(sizeof(char) * (len + 1));
+    snprintf(combine, len + 1, "%s%s", parts[0], parts[2]);
+    char *v;
+    int err = hashmap_get(terminals_map, combine, (void **) (&v));
+    if (err == MAP_OK) {
+        return 0;
+    }
+    fprintf(fp, "%s%s\n%s%s\n", combine, parts[1], parts[1], combine);
+    perror("hello");
+    free(combine);
+    return 2;
+}
+
+int load_terminals2map(struct program_info program_info, map_t terminals_map) {
+
+    char base_directory[FILENAME_MAX];
+    snprintf(base_directory, FILENAME_MAX, "%s%c", program_info.rule_name, SLASH);
+    char config_filename[FILENAME_MAX];
+    snprintf(config_filename, FILENAME_MAX, "%sconfig.ini", base_directory);
+    int type_num = 4;
+    char *structures[] = {"BASE_A", "BASE_D", "BASE_O", "BASE_Y"};
+    for (int type_n = 0; type_n < type_num; type_n++) {
+        char section_folder[MAX_CONFIG_LINE];
+
+        if (get_key(config_filename, structures[type_n], "directory", section_folder) != 0) {
+            fprintf(stderr, "Could not get folder name for section. Exiting\n");
+            return 1;
+        }
+        char result[256][MAX_CONFIG_ITEM];
+        int list_size;
+        if (config_get_list(config_filename, structures[type_n], "filenames", result, &list_size, 256) != 0) {
+            fprintf(stderr, "Error reading the config for a rules file. Exiting\n");
+            return 1;
+        }
+        for (int i = 0; i < list_size; i++) {
+            char filename[PATH_MAX];
+            snprintf(filename, PATH_MAX, "%s%s%c%s", base_directory, section_folder, SLASH, result[i]);
+            FILE *fin = fopen(filename, "r");
+            char buff[MAX_CONFIG_LINE];
+            double prob;
+
+            // A temp holder for the string value in the file
+            char value[MAX_CONFIG_LINE];
+
+            while (fgets(buff, MAX_CONFIG_LINE, fin) != NULL) {
+                if (split_value(buff, value, &prob) != 0) {
+                    perror("Known error when loading terminals");
+                    exit(-1);
+                }
+                char *key = malloc(sizeof(char) * (strnlen(value, MAX_CONFIG_LINE) + 1));
+                hashmap_put(terminals_map, key, key);
+            }
+        }
+    }
+
+    return 0;
 }
