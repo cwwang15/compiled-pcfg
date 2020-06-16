@@ -229,7 +229,6 @@ int sparsity(const char *pwd, FILE *fp, map_t terminals_map) {
         return 0;
     }
     fprintf(fp, "%s%s\n%s%s\n", combine, parts[1], parts[1], combine);
-    perror("hello");
     free(combine);
     return 2;
 }
