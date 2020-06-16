@@ -38,6 +38,8 @@ struct timeval start, end;
 
 int watcher_complete() {
     if (cur_gen_num >= guess_number) {
+        hashmap_free(blackListMap);
+        hashmap_free(pwdVariantMap);
         gettimeofday(&end, NULL);
         double timeuse = (double) (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
         printf("timeuse: %fs\n", timeuse);
@@ -103,6 +105,7 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
                     cur_gen_num++;
                     watcher_complete();
                 }
+                hashmap_remove(pwdVariantMap, cur_guess);
             }
             watcher_complete();
         }
