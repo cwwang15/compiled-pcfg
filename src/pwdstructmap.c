@@ -217,14 +217,25 @@ int sparsity(const char *pwd, FILE *fp, map_t terminals_map) {
         parts[n_seg - 1][i - base_i] = pwd[i];
 
     }
+    parts[n_seg - 1][len - base_i] = '\0';
     int total = count[0] + count[1] + count[2];
     if (total != 2 || n_seg != 3) {
         return 0;
     }
     char *combine = malloc(sizeof(char) * (len + 1));
     snprintf(combine, len + 1, "%s%s", parts[0], parts[2]);
+    char lower[len + 1];
+    lower[len] = '\0';
+    for (int i = 0; i < len; i++) {
+        char c = combine[i];
+        if ('A' <= c && c <= 'Z') {
+            lower[i] = (char) tolower(c);
+        } else {
+            lower[i] = c;
+        }
+    }
     char *v;
-    int err = hashmap_get(terminals_map, combine, (void **) (&v));
+    int err = hashmap_get(terminals_map, lower, (void **) (&v));
     if (err == MAP_OK) {
         return 0;
     }
@@ -270,6 +281,7 @@ int load_terminals2map(struct program_info program_info, map_t terminals_map) {
                     exit(-1);
                 }
                 char *key = malloc(sizeof(char) * (strnlen(value, MAX_CONFIG_LINE) + 1));
+                snprintf(key, MAX_CONFIG_LINE, "%s", value);
                 hashmap_put(terminals_map, key, key);
             }
         }
