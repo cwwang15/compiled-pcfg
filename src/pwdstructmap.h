@@ -23,13 +23,13 @@ typedef struct pwd_variant_s {
     struct pwd_variant_s *next;
 } pwd_variant_t;
 
-map_t read_struct_map(char *filename);
+//map_t read_struct_map(char *filename);
 
-map_t read_pwd_map(char *filename);
+int read_pwd_map(char *filename, map_t pwd_map, map_t black_list_map);
 
-int find_converter(map_t pwd_struct_map, char *reduced_struct, int **variants);
+//int find_converter(map_t pwd_struct_map, char *reduced_struct, int **variants);
 
-char *pwd_struct_extractor(const char *pwd);
+//char *pwd_struct_extractor(const char *pwd);
 
 unsigned long find_char(char source[], char chr);
 

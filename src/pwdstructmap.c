@@ -59,8 +59,7 @@ map_t read_struct_map(char *filename) {
     return struct_map;
 }
 
-map_t read_pwd_map(char *filename) {
-    map_t pwd_map = hashmap_new();
+int read_pwd_map(char *filename, map_t pwd_map, map_t black_list_map) {
     FILE *fp_in = fopen(filename, "r");
     if (fp_in == NULL) {
         fprintf(stderr, "failed to open file: %s", filename);
@@ -68,7 +67,6 @@ map_t read_pwd_map(char *filename) {
     }
     char buf[MAX_LINE];
     while (fgets(buf, MAX_LINE, fp_in) != NULL) {
-
         unsigned long line_len = strlen(buf);
         if (line_len > 0 && buf[line_len - 1] == '\n') {
             buf[line_len - 1] = '\0';
@@ -89,25 +87,21 @@ map_t read_pwd_map(char *filename) {
         }
         pwd_variant_t *pwdVariant;
         char *key = malloc(MAX_LINE);
-        snprintf(key, MAX_LINE, "%s", pair[1]);
-        int len = strnlen(pair[0], MAX_LINE);
-        int error = hashmap_get(pwd_map, key, (void **) (&pwdVariant));
-        if (error == MAP_MISSING) {
-            pwd_variant_t *pwdVariant1 = malloc(sizeof(pwd_variant_t));
-            pwdVariant1->pwd_variant = malloc(sizeof(char) * (len + 1));
-            snprintf(pwdVariant1->pwd_variant, MAX_LINE, "%s", pair[0]);
-            pwdVariant1->next = pwdVariant;
-            hashmap_put(pwd_map, key, pwdVariant1);
-        } else {
-            pwd_variant_t *pwdVariant1 = malloc(sizeof(pwd_struct_t));
-            pwdVariant1->pwd_variant = malloc(sizeof(char) * (len + 1));
-            snprintf(pwdVariant1->pwd_variant, MAX_LINE, "%s", pair[0]);
-            pwdVariant1->next = pwdVariant;
-            hashmap_put(pwd_map, key, pwdVariant1);
-        }
+        char *val = malloc(MAX_LINE);
+        snprintf(key, MAX_LINE, "%s", pair[0]);
+        snprintf(val, MAX_LINE, "%s", pair[1]);
+        hashmap_put(black_list_map, val, val);
+        int len = strnlen(key, MAX_LINE);
+        hashmap_get(pwd_map, key, (void **) (&pwdVariant));
+        pwd_variant_t *newPwdVariant = malloc(sizeof(pwd_variant_t));
+        newPwdVariant->pwd_variant = malloc(sizeof(char) * (len + 1));
+        snprintf(newPwdVariant->pwd_variant, MAX_LINE, "%s", pair[1]);
+        /* if MAP_MISSING, pwdVariant will be NULL, if not, a node of pwd_variant_t */
+        newPwdVariant->next = pwdVariant;
+        hashmap_put(pwd_map, key, newPwdVariant);
     }
     fclose(fp_in);
-    return pwd_map;
+    return 0;
 }
 
 int find_converter(map_t pwd_struct_map, char *reduced_struct, int **variants) {

@@ -27,32 +27,17 @@
 
 long long guess_number;
 long long cur_gen_num;
-int do_post_action = 0;
 char *guesses_file;
 FILE *foutp;
-FILE *extra;
-map_t pwdStructMap;
 map_t pwdVariantMap;
+map_t blackListMap;
 // these should be delete
 #include <sys/time.h>
 
 struct timeval start, end;
 
-int post_action() {
-    if (do_post_action) {
-        char buf[MAX_LINE];
-        while (fgets(buf, MAX_LINE, extra) != NULL) {
-            fputs(buf, foutp);
-        }
-        fclose(extra);
-    }
-
-    return 0;
-}
-
 int watcher_complete() {
     if (cur_gen_num >= guess_number) {
-        post_action();
         gettimeofday(&end, NULL);
         double timeuse = (double) (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
         printf("timeuse: %fs\n", timeuse);
@@ -100,51 +85,26 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
 
         // If this is the last item, generate a guess
         if (base_pos == (pq_item->size - 1)) {
+            char *v;
+            int b_error = hashmap_get(blackListMap, cur_guess, (void **) (&v));
+            if (b_error == MAP_OK) {
+                continue;
+            }
             cur_gen_num++;
 //            fprintf(stderr, "%llu: ", cur_gen_num);
             fputs(cur_guess, foutp);
-            fputs("\n", foutp);
+            fputc('\n', foutp);
             pwd_variant_t *pwdVariant;
             int v_error = hashmap_get(pwdVariantMap, cur_guess, (void **) (&pwdVariant));
             if (v_error != MAP_MISSING) {
                 for (pwd_variant_t *ps = pwdVariant; ps != NULL; ps = ps->next) {
                     fputs(ps->pwd_variant, foutp);
-                    fputs("\n", foutp);
+                    fputc('\n', foutp);
                     cur_gen_num++;
                     watcher_complete();
                 }
-            } else {
-                char *cur_guess_struct = pwd_struct_extractor(cur_guess);
-//            fprintf(stderr, "0, ");
-                int **struct_variants = malloc(sizeof(int *) * 20);
-//            fprintf(stderr, "1, ");
-                int struct_variants_count = find_converter(pwdStructMap, cur_guess_struct, struct_variants);
-//            fprintf(stderr, "2, ");
-                int pwd_len = strnlen(cur_guess, MAX_LINE);
-                for (int v = 0; v < struct_variants_count; v++) {
-//                fprintf(stderr, "3, ");
-                    char variant[pwd_len + 1];
-                    variant[pwd_len] = '\0';
-                    int *pos_map = struct_variants[v];
-                    for (int p = 0; p < pwd_len; p++) {
-                        variant[pos_map[p]] = cur_guess[p];
-                    }
-                    fputs(variant, foutp);
-                    fputs("\n", foutp);
-                    cur_gen_num++;
-                    watcher_complete();
-                }
-//            fprintf(stderr, "4, ");
-
-                free(struct_variants);
-                free(cur_guess_struct);
-                struct_variants = NULL;
-                cur_guess_struct = NULL;
             }
-
             watcher_complete();
-//            fprintf(stderr, "ok\n");
-            // printf("guess: %s\n",cur_guess);
         }
             // Not the last item so doing this recursivly
         else {
@@ -185,26 +145,11 @@ int main(int argc, char *argv[]) {
     cur_gen_num = 0;
     guesses_file = program_info.guesses_file;
     // get path of grammar and pwd_struct_map
-    char *grammar_path = malloc(PATH_MAX);
-    snprintf(grammar_path, PATH_MAX,
-             "%s%s", program_info.rule_name, "/Grammar/grammar.txt");
-    char *struct_map_path = malloc(PATH_MAX);
-    snprintf(struct_map_path, PATH_MAX, "%s%s", program_info.rule_name, "/Grammar/structmap.txt");
     char *pwd_map_path = malloc(PATH_MAX);
     snprintf(pwd_map_path, PATH_MAX, "%s%s", program_info.rule_name, "/Grammar/pwdmap.txt");
-    char *not_cracked_file = malloc(PATH_MAX);
-    snprintf(not_cracked_file, PATH_MAX, "%s%s", program_info.rule_name, "/Grammar/not_cracked.txt");
-    printf("grammar path: %s\nstruct map path: %s\n", grammar_path, struct_map_path);
-    pwdStructMap = read_struct_map(struct_map_path);
-    pwdVariantMap = read_pwd_map(pwd_map_path);
-    int extra_pwd_num = count_line(not_cracked_file);
-    if (guess_number > extra_pwd_num * 8) {
-        do_post_action = 1;
-        extra = fopen(not_cracked_file, "r");
-        guess_number -= extra_pwd_num;
-    }
-    free(grammar_path);
-    free(struct_map_path);
+    pwdVariantMap = hashmap_new();
+    blackListMap = hashmap_new();
+    read_pwd_map(pwd_map_path, pwdVariantMap, blackListMap);
     free(pwd_map_path);
     // Print the startup banner
     print_banner(program_info.version);
@@ -243,7 +188,5 @@ int main(int argc, char *argv[]) {
         free(pq_item->pt);
         free(pq_item);
     }
-
-
     return 0;
 }
