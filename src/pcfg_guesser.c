@@ -137,6 +137,7 @@ void generate_guesses(PQItem *pq_item) {
 int f(void *fp, void *val) {
     fputs((char *) val, (FILE *) (fp));
     fputc('\n', (FILE *) (fp));
+    cur_gen_num++;
     return MAP_OK;
 }
 
