@@ -21,3 +21,4 @@ pcfg_guesser*
 Rules/*
 Rules/
 *.log
+*.pickle
