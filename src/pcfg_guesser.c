@@ -97,8 +97,8 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
 //            fprintf(stderr, "%llu: ", cur_gen_num);
             fputs(cur_guess, foutp);
             fputc('\n', foutp);
-            cur_gen_num += sparsity(cur_guess, foutp, terminalsMap);
-            pwd_variant_t *pwdVariant;
+//            cur_gen_num += sparsity(cur_guess, foutp, terminalsMap);
+            /*pwd_variant_t *pwdVariant;
             int v_error = hashmap_get(pwdVariantMap, cur_guess, (void **) (&pwdVariant));
             if (v_error != MAP_MISSING) {
                 for (pwd_variant_t *ps = pwdVariant; ps != NULL; ps = ps->next) {
@@ -108,7 +108,7 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
                     watcher_complete();
                 }
                 hashmap_remove(pwdVariantMap, cur_guess);
-            }
+            }*/
             watcher_complete();
         }
             // Not the last item so doing this recursivly
@@ -134,6 +134,11 @@ void generate_guesses(PQItem *pq_item) {
 
 }
 
+int f(void *fp, void *val) {
+    fputs((char *) val, (FILE *) (fp));
+    fputc('\n', (FILE *) (fp));
+    return MAP_OK;
+}
 
 // The main program
 int main(int argc, char *argv[]) {
@@ -183,6 +188,8 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Starting to generate guesses\n");
     gettimeofday(&start, NULL);
     // Start generating guesses
+    int (*p)(void *, void *) = f;
+    hashmap_iterate(blackListMap, p, foutp);
     while (!priority_queue_empty(pq)) {
         PQItem *pq_item = pcfg_pq_pop(pq);
         if (pq_item == NULL) {
