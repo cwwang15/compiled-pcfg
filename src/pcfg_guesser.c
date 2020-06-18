@@ -25,8 +25,12 @@
 
 #include "pcfg_guesser.h"
 
+#define STEP  100000
+#define BAR_LENGTH 10000
+
 long long guess_number;
 long long cur_gen_num;
+long long progress_total;
 char *guesses_file;
 FILE *foutp;
 // these should be delete
@@ -78,10 +82,13 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
 //            fprintf(stderr, "%s\t%f\n", cur_guess, pq_item->prob);
             if (cur_gen_num >= guess_number) {
                 gettimeofday(&end, NULL);
-                double timeuse = (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
+                double timeuse = (double) (end.tv_sec - start.tv_sec)
+                                 + ((double) (end.tv_usec - start.tv_usec) / 1000000);
                 printf("timeuse: %fs\n", timeuse);
-                printf("Done! The speed is %f\n", guess_number / timeuse);
+                printf("Done! The speed is %f\n", (double) guess_number / timeuse);
                 exit(0);
+            } else if (cur_gen_num % progress_total == 0) {
+                fprintf(stderr, "%5lld/%5d\b\b\b\b\b\b\b\b\b\b\b", cur_gen_num / progress_total, BAR_LENGTH);
             }
             // printf("guess: %s\n",cur_guess);
         }
@@ -121,7 +128,12 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     guess_number = program_info.guess_number;
+    if (guess_number <= 0) {
+        fprintf(stderr, "guess number cannot be zero or negative!\n");
+        return 1;
+    }
     cur_gen_num = 0;
+    progress_total = guess_number / BAR_LENGTH;
     guesses_file = program_info.guesses_file;
     // Print the startup banner
     print_banner(program_info.version);
