@@ -33,18 +33,18 @@ const char *argp_program_version = VERSION;
 //   OPTIONS.  Field 1 in ARGP.
 //   Order of fields: {NAME, KEY, ARG, FLAGS, DOC}.
 static struct argp_option options[] =
-{
-    {"rule_name",  'r', "OUTFILE", 0, "The ruleset to use. Default is: 'Default'"},
-    {"debug", 'd', 0, 0, "Prints out debugging info vs guesses."},
-    {"guess-number", 'n', "GUESSNUMBER", 0, "How many guesses will be generated"},
-    {"guesses-file", 'f', "GUESSESFILE", 0, "The candidate guesses will be put here"},
-    {0}
-};
+        {
+                {"rule_name",    'r', "OUTFILE",     0, "The ruleset to use. Default is: 'Default'"},
+                {"debug",        'd', 0,             0, "Prints out debugging info vs guesses."},
+                {"guess-number", 'n', "GUESSNUMBER", 0, "How many guesses will be generated"},
+                {"guesses-file", 'f', "GUESSESFILE", 0, "The candidate guesses will be put here"},
+                {0}
+        };
 
 
 //   PARSER. Field 2 in ARGP.
 //   Order of parameters: KEY, ARG, STATE.
-static error_t parse_opt (int key, char *arg, struct argp_state *state){
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     struct program_info *program_info = state->input;
 
     switch (key) {
@@ -55,7 +55,11 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state){
             program_info->rule_name = arg;
             break;
         case 'n':
-            program_info->guess_number = atoll(arg);
+            program_info->guess_number = strtoll(arg, NULL, 10);
+            if (program_info->guess_number <= 0) {
+                fprintf(stderr, "guess number cannot be zero or negative!\n");
+                exit(-1);
+            }
             break;
         case 'f':
             program_info->guesses_file = arg;
@@ -75,7 +79,7 @@ static char args_doc[] = "ARG1 ARG2";
 // DOC.  Field 4 in ARGP.
 // Program documentation.
 static char doc[] =
-  "Pretty Cool Fuzzy Guesser: Version\vA program for generationg password guesses";
+        "Pretty Cool Fuzzy Guesser: Version\vA program for generationg password guesses";
 
 
 // The ARGP structure itself.
@@ -83,7 +87,7 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 
 
 int parse_command_line(int argc, char **argv, struct program_info *program_info) {
-	
+
     // Set argument defaults
     program_info->rule_name = "Default";
     program_info->debug = 0;
@@ -91,8 +95,8 @@ int parse_command_line(int argc, char **argv, struct program_info *program_info)
     program_info->min_supported_version = MIN_SUPPORTED_VERSION;
     program_info->guess_number = 10;
     program_info->guesses_file = "guesses.txt";
-    
+
     argp_parse(&argp, argc, argv, 0, 0, program_info);
-    
+
     return 0;
 }

@@ -24,12 +24,11 @@
 //
 
 #include "pcfg_guesser.h"
+#define BAR_LENGTH 10000
 
 long long guess_number;
 long long cur_gen_num;
 long long process_total;
-#define BAR_LENGTH 10000
-#define STEP  100000
 char *guesses_file;
 FILE *foutp;
 map_t pwdVariantMap;
@@ -48,8 +47,8 @@ int watcher_complete() {
         fprintf(stderr, "\ntimeuse: %fs\n", timeuse);
         fprintf(stderr, "Done! The speed is %f\n", ((double) guess_number) / timeuse);
         exit(0);
-    } else if (cur_gen_num % STEP == 0) {
-        fprintf(stderr, "%5lld/10000\b\b\b\b\b\b\b\b\b\b\b", cur_gen_num / process_total);
+    } else if (cur_gen_num % process_total == 0) {
+        fprintf(stderr, "%5lld/%5d\b\b\b\b\b\b\b\b\b\b\b", cur_gen_num / process_total, BAR_LENGTH);
     }
     return 0;
 }
