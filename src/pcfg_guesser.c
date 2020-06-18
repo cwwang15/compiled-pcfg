@@ -24,6 +24,7 @@
 //
 
 #include "pcfg_guesser.h"
+
 #define BAR_LENGTH 10000
 
 long long guess_number;
@@ -44,8 +45,8 @@ int watcher_complete() {
         hashmap_free(pwdVariantMap);
         gettimeofday(&end, NULL);
         double timeuse = (double) (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
-        fprintf(stderr, "\ntimeuse: %fs\n", timeuse);
-        fprintf(stderr, "Done! The speed is %f\n", ((double) guess_number) / timeuse);
+        fprintf(stderr, "\ntime used: %.2fs, #guesses: %lld\n"
+                        "The speed is %f", timeuse, guess_number, ((double) guess_number) / timeuse);
         exit(0);
     } else if (cur_gen_num % process_total == 0) {
         fprintf(stderr, "%5lld/%5d\b\b\b\b\b\b\b\b\b\b\b", cur_gen_num / process_total, BAR_LENGTH);
@@ -137,13 +138,6 @@ void generate_guesses(PQItem *pq_item) {
 
 }
 
-int f(void *fp, void *val) {
-    fputs((char *) val, (FILE *) (fp));
-    fputc('\n', (FILE *) (fp));
-    cur_gen_num++;
-    return MAP_OK;
-}
-
 // The main program
 int main(int argc, char *argv[]) {
 
@@ -161,13 +155,14 @@ int main(int argc, char *argv[]) {
     guesses_file = program_info.guesses_file;
     // get path of grammar and pwd_struct_map
     char *pwd_map_path = malloc(PATH_MAX);
-    snprintf(pwd_map_path, PATH_MAX, "%s%s", program_info.rule_name, "/Grammar/pwdmap.txt");
+    snprintf(pwd_map_path, PATH_MAX, "%s%c%s%c%s", program_info.rule_name, SLASH, "Grammar", SLASH, "pwdmap.txt");
     pwdVariantMap = hashmap_new();
     blackListMap = hashmap_new();
     terminalsMap = hashmap_new();
     read_pwd_map(pwd_map_path, pwdVariantMap, blackListMap);
     load_terminals2map(program_info, terminalsMap);
     free(pwd_map_path);
+    pwd_map_path = NULL;
     // Print the startup banner
     print_banner(program_info.version);
 
@@ -198,7 +193,7 @@ int main(int argc, char *argv[]) {
     while (!priority_queue_empty(pq)) {
         PQItem *pq_item = pcfg_pq_pop(pq);
         if (pq_item == NULL) {
-            printf("Memory allocation error when popping item from pqueue\n");
+            fprintf(stderr, "Memory allocation error when popping item from pqueue\n");
             return 1;
         }
 
