@@ -27,13 +27,15 @@
 
 long long guess_number;
 long long cur_gen_num;
+long long process_total;
+#define BAR_LENGTH 10000
+#define STEP  100000
 char *guesses_file;
 FILE *foutp;
 map_t pwdVariantMap;
 map_t blackListMap;
 map_t terminalsMap;
 // these should be delete
-#include <sys/time.h>
 
 struct timeval start, end;
 
@@ -43,9 +45,11 @@ int watcher_complete() {
         hashmap_free(pwdVariantMap);
         gettimeofday(&end, NULL);
         double timeuse = (double) (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
-        printf("timeuse: %fs\n", timeuse);
-        printf("Done! The speed is %f\n", ((double) guess_number) / timeuse);
+        fprintf(stderr, "\ntimeuse: %fs\n", timeuse);
+        fprintf(stderr, "Done! The speed is %f\n", ((double) guess_number) / timeuse);
         exit(0);
+    } else if (cur_gen_num % STEP == 0) {
+        fprintf(stderr, "%5lld/10000\b\b\b\b\b\b\b\b\b\b\b", cur_gen_num / process_total);
     }
     return 0;
 }
@@ -98,7 +102,7 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
             fputs(cur_guess, foutp);
             fputc('\n', foutp);
 //            cur_gen_num += sparsity(cur_guess, foutp, terminalsMap);
-            /*pwd_variant_t *pwdVariant;
+            pwd_variant_t *pwdVariant;
             int v_error = hashmap_get(pwdVariantMap, cur_guess, (void **) (&pwdVariant));
             if (v_error != MAP_MISSING) {
                 for (pwd_variant_t *ps = pwdVariant; ps != NULL; ps = ps->next) {
@@ -108,7 +112,7 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
                     watcher_complete();
                 }
                 hashmap_remove(pwdVariantMap, cur_guess);
-            }*/
+            }
             watcher_complete();
         }
             // Not the last item so doing this recursivly
@@ -153,6 +157,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     guess_number = program_info.guess_number;
+    process_total = guess_number / BAR_LENGTH;
     cur_gen_num = 0;
     guesses_file = program_info.guesses_file;
     // get path of grammar and pwd_struct_map
@@ -189,8 +194,8 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Starting to generate guesses\n");
     gettimeofday(&start, NULL);
     // Start generating guesses
-    int (*p)(void *, void *) = f;
-    hashmap_iterate(blackListMap, p, foutp);
+//    int (*p)(void *, void *) = f;
+//    hashmap_iterate(blackListMap, p, foutp);
     while (!priority_queue_empty(pq)) {
         PQItem *pq_item = pcfg_pq_pop(pq);
         if (pq_item == NULL) {
