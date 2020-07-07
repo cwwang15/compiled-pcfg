@@ -25,7 +25,6 @@
 
 #include "pcfg_guesser.h"
 
-#define STEP  100000
 #define BAR_LENGTH 10000
 
 long long guess_number;
@@ -46,7 +45,7 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
 
         // This is a capitalization section
 
-        if (strncmp(pq_item->pt[base_pos]->type, "C", 2) == 0) {
+        if (strncmp(pq_item->pt[base_pos]->type, "C", 1) == 0) {
             // Go backward to the previous section and apply the mask
             // Note, if someone messed with the ruleset this could cause issues, so
             // need to do some sanity checking on the bounds
@@ -62,10 +61,12 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
             // into at a later point.
             for (int y = 0; y < mask_len; y++) {
                 //lowercase the letter
-                if (pq_item->pt[base_pos]->value[i][y] == 'L') {
-                    cur_guess[start_point - mask_len + y] = tolower(cur_guess[start_point - mask_len + y]);
-                } else {
-                    cur_guess[start_point - mask_len + y] = toupper(cur_guess[start_point - mask_len + y]);
+                char c = cur_guess[start_point - mask_len + y];
+                char mask = pq_item->pt[base_pos]->value[i][y];
+                if (mask == 'U' && 'a' <= c && c <= 'z') {
+                    cur_guess[start_point - mask_len + y] = (char) toupper((int) c);
+                } else if (mask == 'L' && 'A' <= c && c <= 'Z') {
+                    cur_guess[start_point - mask_len + y] = (char) tolower((int) c);
                 }
             }
 
