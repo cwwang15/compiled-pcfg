@@ -34,7 +34,6 @@ char *guesses_file;
 FILE *foutp;
 map_t pwdVariantMap;
 map_t blackListMap;
-map_t terminalsMap;
 // these should be delete
 
 struct timeval start, end;
@@ -155,12 +154,10 @@ int main(int argc, char *argv[]) {
     guesses_file = program_info.guesses_file;
     // get path of grammar and pwd_struct_map
     char *pwd_map_path = malloc(PATH_MAX);
-    snprintf(pwd_map_path, PATH_MAX, "%s%c%s%c%s", program_info.rule_name, SLASH, "Grammar", SLASH, "pwdmap.txt");
+    snprintf(pwd_map_path, PATH_MAX, "%s%c%s%c%s", program_info.rule_name, SLASH, "Mixing", SLASH, "all.txt");
     pwdVariantMap = hashmap_new();
     blackListMap = hashmap_new();
-    terminalsMap = hashmap_new();
     read_pwd_map(pwd_map_path, pwdVariantMap, blackListMap);
-    load_terminals2map(program_info, terminalsMap);
     free(pwd_map_path);
     pwd_map_path = NULL;
     // Print the startup banner
