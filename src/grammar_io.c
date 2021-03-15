@@ -62,6 +62,7 @@ PcfgReplacements *load_term_from_file(char *filename, char *type, long id) {
     // Initalize things and get the first line of the file
     if (!fgets(buff, MAX_CONFIG_LINE, (FILE *) fp)) {
         // The file should have at least one line in it
+        fprintf(stderr, "ERROR: The file %s should have at least one line in it\n", filename);
         return NULL;
     }
 
@@ -334,10 +335,10 @@ int load_grammar(char *arg_exec, struct program_info program_info, PcfgGrammar *
     }
 
     // Read in the years terminals 
-    if (load_terminal(config_filename, base_directory, "BASE_Y", "Y", pcfg->years) != 0) {
-        fprintf(stderr, "Error reading the Y rules file. Exiting\n");
-        return 1;
-    }
+//    if (load_terminal(config_filename, base_directory, "BASE_Y", "Y", pcfg->years) != 0) {
+//        fprintf(stderr, "Error reading the Y rules file. Exiting\n");
+//        return 1;
+//    }
     // Read in the "other" terminals 
     if (load_terminal(config_filename, base_directory, "BASE_O", "O", pcfg->other) != 0) {
         fprintf(stderr, "Error reading the O rules file. Exiting\n");
@@ -351,10 +352,10 @@ int load_grammar(char *arg_exec, struct program_info program_info, PcfgGrammar *
     }
 
     // Read in the keyboard combo terminals
-    /*if (load_terminal(config_filename, base_directory, "BASE_K", "K", pcfg->keyboard) != 0) {
+    if (load_terminal(config_filename, base_directory, "BASE_K", "K", pcfg->keyboard) != 0) {
         fprintf(stderr, "Error reading the K rules file. Exiting\n");
         return 1;
-    }*/
+    }
 
     // Now read in the base structures. Note, this doesn't need to be done last
     // but depending on what enhancements are done in the future it's good
