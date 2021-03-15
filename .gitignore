@@ -22,3 +22,6 @@ Rules/*
 Rules/
 *.log
 *.pickle
+
+ddntest-result.txt
+reseg_pcfg_guesser

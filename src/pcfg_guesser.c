@@ -159,11 +159,13 @@ int main(int argc, char *argv[]) {
     FILE *fp_in = fopen(pwd_map_path, "r");
     if (NULL == foutp) {
         fprintf(stderr, "error open file %s\n", guesses_file);
+        free(guesses_file);
         return 1;
     }
     if (fp_in == NULL) {
         fprintf(stderr, "failed to open file: %s", pwd_map_path);
-        exit(-1);
+        free(pwd_map_path);
+        return 1;
     }
     char buf[MAX_LINE];
     while (fgets(buf, MAX_LINE, fp_in) != NULL) {
@@ -189,7 +191,7 @@ int main(int argc, char *argv[]) {
         cur_gen_num++;
         watcher_complete();
     }
-
+    fclose(fp_in);
     fprintf(stderr, "Initailizing the Priority Queue\n");
     priority_queue_t *pq;
 
