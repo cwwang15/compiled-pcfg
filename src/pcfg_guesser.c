@@ -32,16 +32,14 @@ long long cur_gen_num;
 long long process_total;
 char *guesses_file;
 FILE *foutp;
-map_t pwdVariantMap;
-map_t blackListMap;
 // these should be delete
 
 struct timeval start, end;
 
 int watcher_complete() {
     if (cur_gen_num >= guess_number) {
-        hashmap_free(blackListMap);
-        hashmap_free(pwdVariantMap);
+//        hashmap_free(blackListMap);
+//        hashmap_free(pwdVariantMap);
         gettimeofday(&end, NULL);
         double timeuse = (double) (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
         fprintf(stderr, "\ntime used: %.2fs, #guesses: %lld\n"
@@ -91,27 +89,11 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
 
         // If this is the last item, generate a guess
         if (base_pos == (pq_item->size - 1)) {
-            char *v;
-            int b_error = hashmap_get(blackListMap, cur_guess, (void **) (&v));
-            if (b_error == MAP_OK) {
-                continue;
-            }
             cur_gen_num++;
 //            fprintf(stderr, "%llu: ", cur_gen_num);
             fputs(cur_guess, foutp);
             fputc('\n', foutp);
 //            cur_gen_num += sparsity(cur_guess, foutp, terminalsMap);
-            pwd_variant_t *pwdVariant;
-            int v_error = hashmap_get(pwdVariantMap, cur_guess, (void **) (&pwdVariant));
-            if (v_error != MAP_MISSING) {
-                for (pwd_variant_t *ps = pwdVariant; ps != NULL; ps = ps->next) {
-                    fputs(ps->pwd_variant, foutp);
-                    fputc('\n', foutp);
-                    cur_gen_num++;
-                    watcher_complete();
-                }
-                hashmap_remove(pwdVariantMap, cur_guess);
-            }
             watcher_complete();
         }
             // Not the last item so doing this recursivly
@@ -155,11 +137,12 @@ int main(int argc, char *argv[]) {
     // get path of grammar and pwd_struct_map
     char *pwd_map_path = malloc(PATH_MAX);
     snprintf(pwd_map_path, PATH_MAX, "%s%c%s%c%s", program_info.rule_name, SLASH, "Mixing", SLASH, "all.txt");
-    pwdVariantMap = hashmap_new();
-    blackListMap = hashmap_new();
-    read_pwd_map(pwd_map_path, pwdVariantMap, blackListMap);
-    free(pwd_map_path);
-    pwd_map_path = NULL;
+
+//    pwdVariantMap = hashmap_new();
+//    blackListMap = hashmap_new();
+//    read_pwd_map(pwd_map_path, pwdVariantMap, blackListMap);
+//    free(pwd_map_path);
+//    pwd_map_path = NULL;
     // Print the startup banner
     print_banner(program_info.version);
 
@@ -173,10 +156,40 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     foutp = fopen(guesses_file, "w");
+    FILE *fp_in = fopen(pwd_map_path, "r");
     if (NULL == foutp) {
         fprintf(stderr, "error open file %s\n", guesses_file);
         return 1;
     }
+    if (fp_in == NULL) {
+        fprintf(stderr, "failed to open file: %s", pwd_map_path);
+        exit(-1);
+    }
+    char buf[MAX_LINE];
+    while (fgets(buf, MAX_LINE, fp_in) != NULL) {
+        unsigned long line_len = strlen(buf);
+        if (line_len > 0 && buf[line_len - 1] == '\n') {
+            buf[line_len - 1] = '\0';
+        }
+        if (line_len > 1 && buf[line_len - 2] == '\r') {
+            buf[line_len - 2] = '\0';
+        }
+        char *token;
+        int i;
+        char delim[] = "\t";
+        char *pair[2];
+        for (token = strtok(buf, delim), i = 0; token != NULL; token = strtok(NULL, delim), i += 1) {
+            if (i >= 2) {
+                perror("Unexpected index: ");
+                exit(-1);
+            }
+            pair[i] = token;
+        }
+        fprintf(foutp, "%s\n", pair[1]);
+        cur_gen_num++;
+        watcher_complete();
+    }
+
     fprintf(stderr, "Initailizing the Priority Queue\n");
     priority_queue_t *pq;
 
