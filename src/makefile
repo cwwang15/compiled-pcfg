@@ -44,7 +44,7 @@ CC                      := cc
 endif
 
 ifeq ($(DEBUG),0)
-CFLAGS                  += -O2
+CFLAGS                  += -O3
 ifneq ($(UNAME),Darwin)
 LFLAGS                  += -s
 endif

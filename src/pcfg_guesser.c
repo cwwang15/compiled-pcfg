@@ -75,11 +75,19 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
             // into at a later point.
             for (int y = 0; y < mask_len; y++) {
                 //lowercase the letter
-                if (pq_item->pt[base_pos]->value[i][y] == 'L') {
-                    cur_guess[start_point - mask_len + y] = (char) tolower(cur_guess[start_point - mask_len + y]);
-                } else {
-                    cur_guess[start_point - mask_len + y] = (char) toupper(cur_guess[start_point - mask_len + y]);
+                int idx = start_point - mask_len + y;
+                char c = cur_guess[idx];
+                char mask = pq_item->pt[base_pos]->value[i][y];
+                if (mask == 'U' && 'a' <= c && c <= 'z') {
+                    cur_guess[idx] = (char) toupper((int) c);
+                } else if (mask == 'L' && 'A' <= c && c <= 'Z') {
+                    cur_guess[idx] = (char) tolower((int) c);
                 }
+//                if (pq_item->pt[base_pos]->value[i][y] == 'L') {
+//                    cur_guess[start_point - mask_len + y] = (char) tolower(cur_guess[start_point - mask_len + y]);
+//                } else {
+//                    cur_guess[start_point - mask_len + y] = (char) toupper(cur_guess[start_point - mask_len + y]);
+//                }
             }
 
         } else {
@@ -94,7 +102,17 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
             fputs(cur_guess, foutp);
             fputc('\n', foutp);
 //            cur_gen_num += sparsity(cur_guess, foutp, terminalsMap);
-            watcher_complete();
+            if (cur_gen_num >= guess_number) {
+//        hashmap_free(blackListMap);
+//        hashmap_free(pwdVariantMap);
+                gettimeofday(&end, NULL);
+                double timeuse = (double) (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
+                fprintf(stderr, "\ntime used: %.2fs, #guesses: %lld\n"
+                                "The speed is %f", timeuse, guess_number, ((double) guess_number) / timeuse);
+                exit(0);
+            } else if (cur_gen_num % process_total == 0) {
+                fprintf(stderr, "%5lld/%5d\b\b\b\b\b\b\b\b\b\b\b", cur_gen_num / process_total, BAR_LENGTH);
+            }
         }
             // Not the last item so doing this recursivly
         else {
