@@ -39,7 +39,7 @@ void print_banner(char *version) {
     fprintf(stderr," / __/ / /_/ / / /_/ /_/ /_/ /  / /_/ / /_/ /  __(__  |__  )  __/ /    \n");
     fprintf(stderr,"/_/    /__,_/ /___//__/\\__, /   \\____/\\__,_/\\___/____/____/\\___/_/     \n");
     fprintf(stderr,"                         /_/                                           \n");
-    fprintf(stderr," ---------------------------> PURE C EDITION!!!    RDed               \n");
+    fprintf(stderr," ---------------------------> PURE C EDITION!!!    ReSeg-PCFG          \n");
     fprintf(stderr,"Version: %s\n", version);
     
     return;
