@@ -141,13 +141,13 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Starting to generate guesses\n");
     gettimeofday(&start, NULL);
     // Start generating guesses
+    fprintf(stderr, "WARNING: This program will run at most 24 hours!\n");
     while (!priority_queue_empty(pq)) {
         PQItem *pq_item = pcfg_pq_pop(pq);
         if (pq_item == NULL) {
             fprintf(stderr, "Memory allocation error when popping item from pqueue\n");
             return 1;
         }
-
         generate_guesses(pq_item);
         gettimeofday(&end, NULL);
         double timeuse = (double) (end.tv_sec - start.tv_sec)
