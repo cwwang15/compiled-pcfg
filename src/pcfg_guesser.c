@@ -29,9 +29,6 @@
 
 long long guess_number;
 long long cur_gen_num;
-long long progress_total;
-char *guesses_file;
-FILE *foutp;
 // these should be delete
 #include <sys/time.h>
 
@@ -78,20 +75,8 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
         // If this is the last item, generate a guess
         if (base_pos == (pq_item->size - 1)) {
             cur_gen_num++;
-            fputs(cur_guess, foutp);
-            fputs("\n", foutp);
-//            fprintf(stderr, "%s\t%f\n", cur_guess, pq_item->prob);
-            if (cur_gen_num >= guess_number) {
-                gettimeofday(&end, NULL);
-                double timeuse = (double) (end.tv_sec - start.tv_sec)
-                                 + ((double) (end.tv_usec - start.tv_usec) / 1000000);
-                printf("timeuse: %fs\n", timeuse);
-                printf("Done! The speed is %f\n", (double) guess_number / timeuse);
-                exit(0);
-            } else if (cur_gen_num % progress_total == 0) {
-                fprintf(stderr, "%5lld/%5d\b\b\b\b\b\b\b\b\b\b\b", cur_gen_num / progress_total, BAR_LENGTH);
-            }
-            // printf("guess: %s\n",cur_guess);
+            fputs(cur_guess, stdout);
+            fputs("\n", stdout);
         }
             // Not the last item so doing this recursivly
         else {
@@ -134,8 +119,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     cur_gen_num = 0;
-    progress_total = guess_number / BAR_LENGTH;
-    guesses_file = program_info.guesses_file;
     // Print the startup banner
     print_banner(program_info.version);
 
@@ -148,12 +131,11 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Error loading ruleset. Exiting\n");
         return 1;
     }
-    foutp = fopen(guesses_file, "w");
-    if (NULL == foutp) {
-        fprintf(stderr, "error open file %s\n", guesses_file);
-        return 1;
-    }
-    fprintf(stderr, "Initailizing the Priority Queue\n");
+//    foutp = fopen(guesses_file, "w");
+//    if (NULL == foutp) {
+//        fprintf(stderr, "error open file %s\n", guesses_file);
+//        return 1;
+
     priority_queue_t *pq;
 
     initialize_pcfg_pqueue(&pq, &pcfg);
@@ -164,12 +146,14 @@ int main(int argc, char *argv[]) {
     while (!priority_queue_empty(pq)) {
         PQItem *pq_item = pcfg_pq_pop(pq);
         if (pq_item == NULL) {
-            printf("Memory allocation error when popping item from pqueue\n");
+            fprintf(stderr, "Memory allocation error when popping item from pqueue\n");
             return 1;
         }
 
         generate_guesses(pq_item);
-
+        if (cur_gen_num >= guess_number) {
+            exit(0);
+        }
         free(pq_item->pt);
         free(pq_item);
     }
