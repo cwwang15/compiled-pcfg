@@ -25,31 +25,11 @@
 
 #include "pcfg_guesser.h"
 
-#define BAR_LENGTH 10000
-
 long long guess_number;
 long long cur_gen_num;
-long long process_total;
-char *guesses_file;
-FILE *foutp;
 // these should be delete
 
 struct timeval start, end;
-
-int watcher_complete() {
-    if (cur_gen_num >= guess_number) {
-//        hashmap_free(blackListMap);
-//        hashmap_free(pwdVariantMap);
-        gettimeofday(&end, NULL);
-        double timeuse = (double) (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
-        fprintf(stderr, "\ntime used: %.2fs, #guesses: %lld\n"
-                        "The speed is %f", timeuse, guess_number, ((double) guess_number) / timeuse);
-        exit(0);
-    } else if (cur_gen_num % process_total == 0) {
-        fprintf(stderr, "%5lld/%5d\b\b\b\b\b\b\b\b\b\b\b", cur_gen_num / process_total, BAR_LENGTH);
-    }
-    return 0;
-}
 
 void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_point) {
 
@@ -98,21 +78,8 @@ void recursive_guess(PQItem *pq_item, int base_pos, char *cur_guess, int start_p
         // If this is the last item, generate a guess
         if (base_pos == (pq_item->size - 1)) {
             cur_gen_num++;
-//            fprintf(stderr, "%llu: ", cur_gen_num);
-            fputs(cur_guess, foutp);
-            fputc('\n', foutp);
-//            cur_gen_num += sparsity(cur_guess, foutp, terminalsMap);
-            if (cur_gen_num >= guess_number) {
-//        hashmap_free(blackListMap);
-//        hashmap_free(pwdVariantMap);
-                gettimeofday(&end, NULL);
-                double timeuse = (double) (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
-                fprintf(stderr, "\ntime used: %.2fs, #guesses: %lld\n"
-                                "The speed is %f", timeuse, guess_number, ((double) guess_number) / timeuse);
-                exit(0);
-            } else if (cur_gen_num % process_total == 0) {
-                fprintf(stderr, "%5lld/%5d\b\b\b\b\b\b\b\b\b\b\b", cur_gen_num / process_total, BAR_LENGTH);
-            }
+            fputs(cur_guess, stdout);
+            fputc('\n', stdout);
         }
             // Not the last item so doing this recursivly
         else {
@@ -149,18 +116,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     guess_number = program_info.guess_number;
-    process_total = guess_number / BAR_LENGTH;
     cur_gen_num = 0;
-    guesses_file = program_info.guesses_file;
     // get path of grammar and pwd_struct_map
     char *pwd_map_path = malloc(PATH_MAX);
     snprintf(pwd_map_path, PATH_MAX, "%s%c%s%c%s", program_info.rule_name, SLASH, "Mixing", SLASH, "all.txt");
 
-//    pwdVariantMap = hashmap_new();
-//    blackListMap = hashmap_new();
-//    read_pwd_map(pwd_map_path, pwdVariantMap, blackListMap);
-//    free(pwd_map_path);
-//    pwd_map_path = NULL;
     // Print the startup banner
     print_banner(program_info.version);
 
@@ -173,13 +133,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Error loading ruleset. Exiting\n");
         return 1;
     }
-    foutp = fopen(guesses_file, "w");
     FILE *fp_in = fopen(pwd_map_path, "r");
-    if (NULL == foutp) {
-        fprintf(stderr, "error open file %s\n", guesses_file);
-        free(guesses_file);
-        return 1;
-    }
     if (fp_in == NULL) {
         fprintf(stderr, "failed to open file: %s", pwd_map_path);
         free(pwd_map_path);
@@ -205,12 +159,11 @@ int main(int argc, char *argv[]) {
             }
             pair[i] = token;
         }
-        fprintf(foutp, "%s\n", pair[1]);
+        fprintf(stdout, "%s\n", pair[1]);
         cur_gen_num++;
-        watcher_complete();
     }
     fclose(fp_in);
-    fprintf(stderr, "Initailizing the Priority Queue\n");
+    fprintf(stderr, "Initializing the Priority Queue\n");
     priority_queue_t *pq;
 
     initialize_pcfg_pqueue(&pq, &pcfg);
@@ -218,8 +171,6 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Starting to generate guesses\n");
     gettimeofday(&start, NULL);
     // Start generating guesses
-//    int (*p)(void *, void *) = f;
-//    hashmap_iterate(blackListMap, p, foutp);
     while (!priority_queue_empty(pq)) {
         PQItem *pq_item = pcfg_pq_pop(pq);
         if (pq_item == NULL) {
@@ -228,7 +179,11 @@ int main(int argc, char *argv[]) {
         }
 
         generate_guesses(pq_item);
-
+        gettimeofday(&end, NULL);
+        double timeuse = (double) (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
+        if (cur_gen_num > guess_number || timeuse > 2.0) {
+            exit(0);
+        }
         free(pq_item->pt);
         free(pq_item);
     }
