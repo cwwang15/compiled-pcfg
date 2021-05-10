@@ -25,8 +25,6 @@
 
 #include "pcfg_guesser.h"
 
-#define BAR_LENGTH 10000
-
 long long guess_number;
 long long cur_gen_num;
 // these should be delete
@@ -151,7 +149,10 @@ int main(int argc, char *argv[]) {
         }
 
         generate_guesses(pq_item);
-        if (cur_gen_num >= guess_number) {
+        gettimeofday(&end, NULL);
+        double timeuse = (double) (end.tv_sec - start.tv_sec)
+                         + ((double) (end.tv_usec - start.tv_usec) / 1000000);
+        if (cur_gen_num >= guess_number || timeuse >= 86400.0) {
             exit(0);
         }
         free(pq_item->pt);
