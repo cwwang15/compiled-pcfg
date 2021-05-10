@@ -181,7 +181,7 @@ int main(int argc, char *argv[]) {
         generate_guesses(pq_item);
         gettimeofday(&end, NULL);
         double timeuse = (double) (end.tv_sec - start.tv_sec) + ((double) (end.tv_usec - start.tv_usec) / 1000000);
-        if (cur_gen_num > guess_number || timeuse > 2.0) {
+        if (cur_gen_num > guess_number || timeuse > 86400.0) {
             fprintf(stderr, "We generated %lld guesses!", cur_gen_num);
             exit(0);
         }
